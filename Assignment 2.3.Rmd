@@ -1,0 +1,245 @@
+---
+title: "Assignment 2-3"
+author: "Sami Ayele, Chisom Okereke, Madi Uraih"
+date: "March 22, 2019"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '2'
+  pdf_document: default
+  html_document:
+    toc: yes
+    toc_depth: 2
+editor_options:
+  chunk_output_type: consol
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message=FALSE)
+```
+
+Here we load all the packages we will need:
+```{r include=FALSE}
+library(lubridate)
+library(tidyverse)
+library(splines)
+library(broom)
+library(knitr)  ## need this one for the kable function
+```
+
+Here we read in the data sets for Baltimore, NY, LA, and Seattle:
+```{r include=FALSE}
+baltimore.data<-read.csv("/Users/Sami/Health Data Analysis/asst2-1-sayele2/nmmaps/baltimore.csv", stringsAsFactors=FALSE)
+ny.data<-read.csv("/Users/Sami/Health Data Analysis/asst2-1-sayele2/nmmaps/ny.csv", stringsAsFactors=FALSE)
+seattle.data<-read.csv("/Users/Sami/Health Data Analysis/asst2-1-sayele2/nmmaps/seattle.csv", stringsAsFactors=FALSE)
+la.data<-read.csv("/Users/Sami/Health Data Analysis/asst2-1-sayele2/nmmaps/la.csv", stringsAsFactors=FALSE)
+baltimore.data$date = ymd(baltimore.data$date)
+ny.data$date = ymd(ny.data$date) 
+seattle.data$date=ymd(seattle.data$date)
+la.data$date=ymd(la.data$date)
+
+## I added these to define the month/year data for when we use it in our models later
+ny.data$month <- month(ny.data$date)
+seattle.data$month <- month(seattle.data$date)
+la.data$month <- month(la.data$date)
+baltimore.data$month <- month(baltimore.data$date)
+
+ny.data$year <- year(ny.data$date)
+seattle.data$year <- year(seattle.data$date)
+la.data$year <- year(la.data$date)
+baltimore.data$year <- year(baltimore.data$date)
+```
+
+Plots of Deaths per day, temperature, and PM10 over time for each of the four cities:
+
+```{r echo=FALSE}
+
+ny.p1 <- ggplot(aes(date, death), data=ny.data) + 
+  geom_point(colour = "red", size=0.1)+
+  labs(y="Deaths per day", x="Date")
+ny.p2 <- ggplot(aes(date, tempF), data=ny.data) + 
+  geom_point(colour = "orange", size=0.1)+
+  labs(y="Temp (F)", x="Date")
+ny.p3 <- ggplot(aes(date, pm10), data=ny.data) + 
+  geom_point(colour = "green", size=0.1) + 
+  labs(x="Date", y="PM10")
+
+library(gridExtra)
+grid.arrange(ny.p1, ny.p2, ny.p3, nrow=3, top="NY")
+```
+
+
+```{r}
+seattle.p1 <- ggplot(aes(date, death), data=seattle.data) + 
+  geom_point(colour = "red", size=0.1)+
+  labs(y="Deaths per day", x="Date")
+seattle.p2 <- ggplot(aes(date, tempF), data=seattle.data) + 
+  geom_point(colour = "orange", size=0.1)+
+  labs(y="Temp (F)", x="Date")
+seattle.p3 <- ggplot(aes(date, pm10), data=seattle.data) + 
+  geom_point(colour = "green", size=0.1) + 
+  labs(x="Date", y="PM10")
+
+library(gridExtra)
+grid.arrange(seattle.p1, seattle.p2, seattle.p3, nrow=3, top="SEATTLE")
+
+baltimore.p1 <- ggplot(aes(date, death), data=baltimore.data) + 
+  geom_point(colour = "red", size=0.1)+
+  labs(y="Deaths per day", x="Date")
+baltimore.p2 <- ggplot(aes(date, tempF), data=baltimore.data) + 
+  geom_point(colour = "orange", size=0.1)+
+  labs(y="Temp (F)", x="Date")
+baltimore.p3 <- ggplot(aes(date, pm10), data=baltimore.data) + 
+  geom_point(colour = "green", size=0.1) + 
+  labs(x="Date", y="PM10")
+
+library(gridExtra)
+grid.arrange(baltimore.p1, baltimore.p2, baltimore.p3, nrow=3, top="BALTIMORE")
+
+
+la.p1 <- ggplot(aes(date, death), data=la.data) + 
+  geom_point(colour = "red", size=0.1)+
+  labs(y="Deaths per day", x="Date")
+la.p2 <- ggplot(aes(date, tempF), data=la.data) + 
+  geom_point(colour = "orange", size=0.1)+
+  labs(y="Temp (F)", x="Date")
+la.p3 <- ggplot(aes(date, pm10), data=la.data) + 
+  geom_point(colour = "green", size=0.1) + 
+  labs(x="Date", y="PM10")
+
+library(gridExtra)
+grid.arrange(la.p1, la.p2, la.p3, nrow=3, top="LA")
+
+```
+
+Modeling daily mortality as a function of PM10 with different seasonal adjustments:
+
+```{r, message=FALSE, warning=FALSE}
+
+# fit the models -- you will need to add a line for any models that are missing
+ny.unadjusted <- glm(death ~ pm10, data=ny.data, family=poisson, na.action=na.exclude)
+ny.season <- glm(death ~ pm10 + as.factor(season), data=ny.data, family=poisson, na.action = na.exclude)
+ny.ns3<-glm(death ~ pm10 + ns(date, 3), data=ny.data, family=poisson, na.action = na.exclude)
+ny.month<-glm(death ~ pm10 + as.factor(month), data=ny.data, family=poisson, na.action = na.exclude)
+ny.season.month<-glm(death ~ pm10 + as.factor(season)*as.factor(year), data=ny.data, family=poisson, na.action = na.exclude)
+ny.month.year<-glm(death ~ pm10 + as.factor(month)*as.factor(year), data=ny.data, family=poisson, na.action = na.exclude)
+ny.ns0<-glm(death ~ pm10 + ns(date, 0), data=ny.data, family=poisson, na.action = na.exclude)
+ny.ns11<-glm(death ~ pm10 + ns(date, 11), data=ny.data, family=poisson, na.action = na.exclude)
+ny.ns75<-glm(death ~ pm10 + ns(date, 75), data=ny.data, family=poisson, na.action = na.exclude)
+ny.ns227<-glm(death ~ pm10 + ns(date, 227), data=ny.data, family=poisson, na.action = na.exclude)
+
+la.unadjusted <- glm(death ~ pm10, data=la.data, family=poisson, na.action=na.exclude)
+la.season <- glm(death ~ pm10 + as.factor(season), data=la.data, family=poisson, na.action = na.exclude)
+la.ns3<-glm(death ~ pm10 + ns(date, 3), data=la.data, family=poisson, na.action = na.exclude)
+la.month<-glm(death ~ pm10 + as.factor(month), data=la.data, family=poisson, na.action = na.exclude)
+la.season.month<-glm(death ~ pm10 + as.factor(season)*as.factor(year), data=la.data, family=poisson, na.action = na.exclude)
+la.month.year<-glm(death ~ pm10 + as.factor(month)*as.factor(year), data=la.data, family=poisson, na.action = na.exclude)
+la.ns0<-glm(death ~ pm10 + ns(date, 0), data=la.data, family=poisson, na.action = na.exclude)
+la.ns11<-glm(death ~ pm10 + ns(date, 11), data=la.data, family=poisson, na.action = na.exclude)
+la.ns75<-glm(death ~ pm10 + ns(date, 75), data=la.data, family=poisson, na.action = na.exclude)
+la.ns227<-glm(death ~ pm10 + ns(date, 227), data=la.data, family=poisson, na.action = na.exclude)
+
+seattle.unadjusted <- glm(death ~ pm10, data=seattle.data, family=poisson, na.action=na.exclude)
+seattle.season <- glm(death ~ pm10 + as.factor(season), data=seattle.data, family=poisson, na.action = na.exclude)
+seattle.ns3<-glm(death ~ pm10 + ns(date, 3), data=seattle.data, family=poisson, na.action = na.exclude)
+seattle.month<-glm(death ~ pm10 + as.factor(month), data=seattle.data, family=poisson, na.action = na.exclude)
+seattle.season.month<-glm(death ~ pm10 + as.factor(season)*as.factor(year), data=seattle.data, family=poisson, na.action = na.exclude)
+seattle.month.year<-glm(death ~ pm10 + as.factor(month)*as.factor(year), data=seattle.data, family=poisson, na.action = na.exclude)
+seattle.ns0<-glm(death ~ pm10 + ns(date, 0), data=seattle.data, family=poisson, na.action = na.exclude)
+seattle.ns11<-glm(death ~ pm10 + ns(date, 11), data=seattle.data, family=poisson, na.action = na.exclude)
+seattle.ns75<-glm(death ~ pm10 + ns(date, 75), data=seattle.data, family=poisson, na.action = na.exclude)
+seattle.ns227<-glm(death ~ pm10 + ns(date, 227), data=seattle.data, family=poisson, na.action = na.exclude)
+
+baltimore.unadjusted <- glm(death ~ pm10, data=baltimore.data, family=poisson, na.action=na.exclude)
+baltimore.season <- glm(death ~ pm10 + as.factor(season), data=baltimore.data, family=poisson, na.action = na.exclude)
+baltimore.ns3<-glm(death ~ pm10 + ns(date, 3), data=baltimore.data, family=poisson, na.action = na.exclude)
+baltimore.month<-glm(death ~ pm10 + as.factor(month), data=baltimore.data, family=poisson, na.action = na.exclude)
+baltimore.season.month<-glm(death ~ pm10 + as.factor(season)*as.factor(year), data=baltimore.data, family=poisson, na.action = na.exclude)
+baltimore.month.year<-glm(death ~ pm10 + as.factor(month)*as.factor(year), data=baltimore.data, family=poisson, na.action = na.exclude)
+baltimore.ns0<-glm(death ~ pm10 + ns(date, 0), data=baltimore.data, family=poisson, na.action = na.exclude)
+baltimore.ns11<-glm(death ~ pm10 + ns(date, 11), data=baltimore.data, family=poisson, na.action = na.exclude)
+baltimore.ns75<-glm(death ~ pm10 + ns(date, 75), data=baltimore.data, family=poisson, na.action = na.exclude)
+baltimore.ns227<-glm(death ~ pm10 + ns(date, 227), data=baltimore.data, family=poisson, na.action = na.exclude)
+
+# get the coefficients from the models; you will need to add the additional models here so they are all in there
+ny_model_coefs <- data.frame(ny.unadjusted$coefficients["pm10"],ny.season$coefficients["pm10"],ny.month$coefficients["pm10"],ny.season.month$coefficients["pm10"],ny.month.year$coefficients["pm10"],ny.ns3$coefficients["pm10"], ny.ns0$coefficients["pm10"], ny.ns11$coefficients["pm10"], ny.ns75$coefficients["pm10"], ny.ns227$coefficients["pm10"])
+names(ny_model_coefs) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
+
+# get the p-values from the models; would need to complete this
+ny_model_pvals <- data.frame(summary(ny.unadjusted)$coefficients["pm10","Pr(>|z|)"],ny.season$coefficients["pm10"],ny.month$coefficients["pm10"],ny.season.month$coefficients["pm10"],ny.month.year$coefficients["pm10"],ny.ns3$coefficients["pm10"], ny.ns0$coefficients["pm10"], ny.ns11$coefficients["pm10"], ny.ns75$coefficients["pm10"], ny.ns227$coefficients["pm10"])
+names(ny_model_pvals) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
+
+
+la_model_coefs <- data.frame(la.unadjusted$coefficients["pm10"],la.season$coefficients["pm10"],la.month$coefficients["pm10"],la.season.month$coefficients["pm10"],la.month.year$coefficients["pm10"],la.ns3$coefficients["pm10"], la.ns0$coefficients["pm10"], la.ns11$coefficients["pm10"], la.ns75$coefficients["pm10"], la.ns227$coefficients["pm10"])
+names(la_model_coefs) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
+
+seattle_model_coefs <- data.frame(seattle.unadjusted$coefficients["pm10"],seattle.season$coefficients["pm10"],seattle.month$coefficients["pm10"],seattle.season.month$coefficients["pm10"],seattle.month.year$coefficients["pm10"],seattle.ns3$coefficients["pm10"], seattle.ns0$coefficients["pm10"], seattle.ns11$coefficients["pm10"], seattle.ns75$coefficients["pm10"], seattle.ns227$coefficients["pm10"])
+names(seattle_model_coefs) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
+
+baltimore_model_coefs <- data.frame(baltimore.unadjusted$coefficients["pm10"],baltimore.season$coefficients["pm10"],baltimore.month$coefficients["pm10"],baltimore.season.month$coefficients["pm10"], baltimore.month.year$coefficients["pm10"],baltimore.ns3$coefficients["pm10"], baltimore.ns0$coefficients["pm10"], baltimore.ns11$coefficients["pm10"], baltimore.ns75$coefficients["pm10"], baltimore.ns227$coefficients["pm10"])
+names(baltimore_model_coefs) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
+
+# here's your nice table of the results; will also need to add the confidence intervals to this table
+kable(t(rbind(ny_model_coefs,ny_model_pvals)), caption = "Table 2: Beta coefficients across models - New York")
+kable(t(la_model_coefs), caption = "Table 2: Beta coefficients across models - LA")
+kable(t(seattle_model_coefs), caption = "Table 2: Beta coefficients across models - Seattle")
+kable(t(baltimore_model_coefs), caption = "Table 2: Beta coefficients across models - Baltimore")
+
+AIC(baltimore.month, baltimore.month.year, baltimore.season, baltimore.season.month, baltimore.unadjusted, baltimore.ns0, baltimore.ns3, baltimore.ns11, baltimore.ns75, baltimore.ns227)
+AIC(ny.month, ny.month.year, ny.season, ny.season.month, ny.unadjusted, ny.ns0, ny.ns3, ny.ns11, ny.ns75, ny.ns227)
+AIC(seattle.month, seattle.month.year, seattle.season, seattle.season.month, seattle.unadjusted, seattle.ns0, seattle.ns3, seattle.ns11, seattle.ns75, seattle.ns227)
+AIC(la.month, la.month.year, la.season, la.season.month, la.unadjusted, la.ns0, la.ns3, la.ns11, la.ns75, la.ns227)
+```
+
+
+```{r}  
+getEsts<-function(cityName){
+if (! cityName %in% c("la", "ny", "seattle", "baltimore")) return(paste0("City you requested not available"))
+currDat<-read.csv(paste0("./nmmaps/", cityName, ".csv"), stringsAsFactors=FALSE)
+currDat$date <- ymd(currDat$date)
+modOut<-glm(death ~ pm10 + ns(date, 75), data=currDat, family=poisson, na.action = na.exclude)
+toReturn<-c(summary(modOut)$coefficients["pm10", c("Estimate", "Std. Error")], confint.default(modOut)[2,])
+names(toReturn)<-c("Estimate", "Std. Error", "CI Low", "CI High")
+
+AICVal<-AIC(modOut)
+
+#par(mfrow=c(3,1), mar=c(0,4,2,2), oma=c(4,2,2,2))
+#plot(pm10 ~ date, data = currDat, xaxt = "n", main = cityName, ylab="PM 10", xlab= "Date", col="blue", cex.main =2 )
+#plot(tempF ~ date, data = currDat, xaxt = "n", ylab="Temperature (F)", xlab="Date", col="red")
+#plot(death ~ date, data = currDat, xlab="", ylab="Daily mortality", col="green")
+#mtext(text="Date", side=1, line=2, outer=TRUE, cex=0.8)
+return(list(toReturn=toReturn, AIC=AICVal))}  
+```  
+
+```{r}  
+library(knitr)
+nyOut<-getEsts("ny")$toReturn
+laOut<-getEsts("la")$toReturn
+baltimoreOut<-getEsts("baltimore")$toReturn
+seattleOut<-getEsts("seattle")$toReturn
+kable(rbind(nyOut, laOut, baltimoreOut, seattleOut), digits=5)
+```
+
+```{r}
+outMat<-matrix(NA, nrow=4, ncol=4)
+rownames(outMat)<-c("ny", "la", "baltimore", "seattle")
+for (currCity in c("ny", "la", "baltimore", "seattle")){
+  outMat[currCity,]<-getEsts(currCity)$toReturn
+}
+colnames(outMat)<-c("Estimate", "Std. Error", "CI Low", "CI High")
+outMat <- as.data.frame(outMat)
+```
+
+
+
+```{r}
+tao2<-var(outMat[,"Estimate"] - mean(outMat[,"Std. Error"]^2))
+outMat$totVar<-outMat[,"Std. Error"]^2 + tao2
+outMat$invVar <- (outMat[,"totVar"])^(-1)
+```
+
+
+```{r, eval=TRUE}
+library(knitr)
+kable(t(outMat), caption = "Table 2: Beta coefficients across models - New York")
+
+```
