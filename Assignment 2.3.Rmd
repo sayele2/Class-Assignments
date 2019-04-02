@@ -172,17 +172,26 @@ names(ny_model_pvals) <- c("unadjusted", "season", "month", "season.month", "mon
 la_model_coefs <- data.frame(la.unadjusted$coefficients["pm10"],la.season$coefficients["pm10"],la.month$coefficients["pm10"],la.season.month$coefficients["pm10"],la.month.year$coefficients["pm10"],la.ns3$coefficients["pm10"], la.ns0$coefficients["pm10"], la.ns11$coefficients["pm10"], la.ns75$coefficients["pm10"], la.ns227$coefficients["pm10"])
 names(la_model_coefs) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
 
+la_model_pvals <- data.frame(summary(la.unadjusted)$coefficients["pm10","Pr(>|z|)"],la.season$coefficients["pm10"],la.month$coefficients["pm10"],la.season.month$coefficients["pm10"],la.month.year$coefficients["pm10"],la.ns3$coefficients["pm10"], la.ns0$coefficients["pm10"], la.ns11$coefficients["pm10"], la.ns75$coefficients["pm10"], la.ns227$coefficients["pm10"])
+names(la_model_pvals) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
+
 seattle_model_coefs <- data.frame(seattle.unadjusted$coefficients["pm10"],seattle.season$coefficients["pm10"],seattle.month$coefficients["pm10"],seattle.season.month$coefficients["pm10"],seattle.month.year$coefficients["pm10"],seattle.ns3$coefficients["pm10"], seattle.ns0$coefficients["pm10"], seattle.ns11$coefficients["pm10"], seattle.ns75$coefficients["pm10"], seattle.ns227$coefficients["pm10"])
 names(seattle_model_coefs) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
+
+seattle_model_pvals <- data.frame(summary(seattle.unadjusted)$coefficients["pm10","Pr(>|z|)"],seattle.season$coefficients["pm10"],seattle.month$coefficients["pm10"],seattle.season.month$coefficients["pm10"],seattle.month.year$coefficients["pm10"],seattle.ns3$coefficients["pm10"], seattle.ns0$coefficients["pm10"], seattle.ns11$coefficients["pm10"], seattle.ns75$coefficients["pm10"], seattle.ns227$coefficients["pm10"])
+names(seattle_model_pvals) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
 
 baltimore_model_coefs <- data.frame(baltimore.unadjusted$coefficients["pm10"],baltimore.season$coefficients["pm10"],baltimore.month$coefficients["pm10"],baltimore.season.month$coefficients["pm10"], baltimore.month.year$coefficients["pm10"],baltimore.ns3$coefficients["pm10"], baltimore.ns0$coefficients["pm10"], baltimore.ns11$coefficients["pm10"], baltimore.ns75$coefficients["pm10"], baltimore.ns227$coefficients["pm10"])
 names(baltimore_model_coefs) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
 
+baltimore_model_pvals <- data.frame(summary(baltimore.unadjusted)$coefficients["pm10","Pr(>|z|)"],baltimore.season$coefficients["pm10"],baltimore.month$coefficients["pm10"],baltimore.season.month$coefficients["pm10"],baltimore.month.year$coefficients["pm10"],baltimore.ns3$coefficients["pm10"], baltimore.ns0$coefficients["pm10"], baltimore.ns11$coefficients["pm10"], baltimore.ns75$coefficients["pm10"], baltimore.ns227$coefficients["pm10"])
+names(baltimore_model_pvals) <- c("unadjusted", "season", "month", "season.month", "month.year", "ns 3df", "ns 0df", "ns 11df", "ns 75df", "ns 227df")
+
 # here's your nice table of the results; will also need to add the confidence intervals to this table
 kable(t(rbind(ny_model_coefs,ny_model_pvals)), caption = "Table 2: Beta coefficients across models - New York")
-kable(t(la_model_coefs), caption = "Table 2: Beta coefficients across models - LA")
-kable(t(seattle_model_coefs), caption = "Table 2: Beta coefficients across models - Seattle")
-kable(t(baltimore_model_coefs), caption = "Table 2: Beta coefficients across models - Baltimore")
+kable(t(rbind(la_model_coefs, la_model_pvals)), caption = "Table 2: Beta coefficients across models - LA")
+kable(t(rbind(seattle_model_coefs, seattle_model_pvals)), caption = "Table 2: Beta coefficients across models - Seattle")
+kable(t(rbind(baltimore_model_coefs, baltimore_model_pvals)), caption = "Table 2: Beta coefficients across models - Baltimore")
 
 AIC(baltimore.month, baltimore.month.year, baltimore.season, baltimore.season.month, baltimore.unadjusted, baltimore.ns0, baltimore.ns3, baltimore.ns11, baltimore.ns75, baltimore.ns227)
 AIC(ny.month, ny.month.year, ny.season, ny.season.month, ny.unadjusted, ny.ns0, ny.ns3, ny.ns11, ny.ns75, ny.ns227)
