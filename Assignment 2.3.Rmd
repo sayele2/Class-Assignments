@@ -211,11 +211,11 @@ names(toReturn)<-c("Estimate", "Std. Error", "CI Low", "CI High")
 
 AICVal<-AIC(modOut)
 
-#par(mfrow=c(3,1), mar=c(0,4,2,2), oma=c(4,2,2,2))
-#plot(pm10 ~ date, data = currDat, xaxt = "n", main = cityName, ylab="PM 10", xlab= "Date", col="blue", cex.main =2 )
-#plot(tempF ~ date, data = currDat, xaxt = "n", ylab="Temperature (F)", xlab="Date", col="red")
-#plot(death ~ date, data = currDat, xlab="", ylab="Daily mortality", col="green")
-#mtext(text="Date", side=1, line=2, outer=TRUE, cex=0.8)
+par(mfrow=c(3,1), mar=c(0,4,2,2), oma=c(4,2,2,2))
+plot(pm10 ~ date, data = currDat, xaxt = "n", main = cityName, ylab="PM 10", xlab= "Date", col="blue", cex.main =2 )
+plot(tempF ~ date, data = currDat, xaxt = "n", ylab="Temperature (F)", xlab="Date", col="red")
+plot(death ~ date, data = currDat, xlab="", ylab="Daily mortality", col="green")
+mtext(text="Date", side=1, line=2, outer=TRUE, cex=0.8)
 return(list(toReturn=toReturn, AIC=AICVal))}  
 ```  
 
@@ -244,6 +244,8 @@ outMat <- as.data.frame(outMat)
 tao2<-var(outMat[,"Estimate"] - mean(outMat[,"Std. Error"]^2))
 outMat$totVar<-outMat[,"Std. Error"]^2 + tao2
 outMat$invVar <- (outMat[,"totVar"])^(-1)
+outMat$ratio <- (outMat[, "invVar"])/sum(outMat[, "invVar"])
+outMat$weightedAvg <- (outMat[, "ratio"])*(outMat[, "invVar"])
 ```
 
 
