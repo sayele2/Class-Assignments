@@ -1,0 +1,142 @@
+---
+title: "Assignment 2-2"
+author: "Sami Ayele, Chisom Okereke, Madi Uraih"
+date: "March 10, 2019"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '2'
+  pdf_document: default
+  html_document:
+    toc: yes
+    toc_depth: 2
+editor_options:
+  chunk_output_type: consol
+---
+
+
+Here we load all the packages we will need:
+```{r}
+library(lubridate)
+library(tidyverse)
+library(splines)
+library(broom)
+library(knitr)  ## need this one for the kable function
+```
+
+Here we read in the data sets for Baltimore, NY, LA, and Seattle:
+```{r}
+baltimore.data<-read.csv("./nmmaps/baltimore.csv", stringsAsFactors=FALSE)
+ny.data<-read.csv("./nmmaps/ny.csv", stringsAsFactors=FALSE)
+seattle.data<-read.csv("./nmmaps/seattle.csv", stringsAsFactors=FALSE)
+la.data<-read.csv("./nmmaps/la.csv", stringsAsFactors=FALSE)
+baltimore.data$date = ymd(baltimore.data$date)
+ny.data$date = ymd(ny.data$date) 
+seattle.data$date=ymd(seattle.data$date)
+la.data$date=ymd(la.data$date)
+
+## I added these to define the month/year data for when we use it in our models later
+ny.data$month <- month(ny.data$date)
+seattle.data$month <- month(seattle.data$date)
+la.data$month <- month(la.data$date)
+baltimore.data$month <- month(baltimore.data$date)
+
+ny.data$year <- year(ny.data$date)
+seattle.data$year <- year(seattle.data$date)
+la.data$year <- year(la.data$date)
+baltimore.data$year <- year(baltimore.data$date)
+```
+
+Plots of Deaths per day, temperature, and PM10 over time for each of the four cities:
+
+```{r}
+
+ny.p1 <- ggplot(aes(date, death), data=ny.data) + 
+  geom_point()+
+  labs(y="Deaths per day", x="")
+ny.p2 <- ggplot(aes(date, tempF), data=ny.data) + 
+  geom_point()+
+  labs(y="Temp (F)", x="")
+ny.p3 <- ggplot(aes(date, pm10), data=ny.data) + 
+  geom_point() + 
+  labs(x="Date", y="PM10")
+
+library(gridExtra)
+grid.arrange(ny.p1, ny.p2, ny.p3, nrow=3, top="NY")
+
+seattle.p1 <- ggplot(aes(date, death), data=seattle.data) + 
+  geom_point()+
+  labs(y="Deaths per day", x="")
+seattle.p2 <- ggplot(aes(date, tempF), data=seattle.data) + 
+  geom_point()+
+  labs(y="Temp (F)", x="")
+seattle.p3 <- ggplot(aes(date, pm10), data=seattle.data) + 
+  geom_point() + 
+  labs(x="Date", y="PM10")
+
+library(gridExtra)
+grid.arrange(seattle.p1, seattle.p2, seattle.p3, nrow=3, top="SEATTLE")
+
+baltimore.p1 <- ggplot(aes(date, death), data=baltimore.data) + 
+  geom_point()+
+  labs(y="Deaths per day", x="")
+baltimore.p2 <- ggplot(aes(date, tempF), data=baltimore.data) + 
+  geom_point()+
+  labs(y="Temp (F)", x="")
+baltimore.p3 <- ggplot(aes(date, pm10), data=baltimore.data) + 
+  geom_point() + 
+  labs(x="Date", y="PM10")
+
+library(gridExtra)
+grid.arrange(baltimore.p1, baltimore.p2, baltimore.p3, nrow=3, top="BALTIMORE")
+
+
+la.p1 <- ggplot(aes(date, death), data=la.data) + 
+  geom_point()+
+  labs(y="Deaths per day", x="")
+la.p2 <- ggplot(aes(date, tempF), data=la.data) + 
+  geom_point()+
+  labs(y="Temp (F)", x="")
+la.p3 <- ggplot(aes(date, pm10), data=la.data) + 
+  geom_point() + 
+  labs(x="Date", y="PM10")
+
+library(gridExtra)
+grid.arrange(la.p1, la.p2, la.p3, nrow=3, top="LA")
+
+```
+
+Modeling daily mortality as a function of PM10 with different seasonal adjustments:
+
+```{r, message=FALSE, warning=FALSE}
+
+# fit the models -- you will need to add a line for any models that are missing
+ny.unadjusted <- glm(death ~ pm10, data=ny.data, family=poisson, na.action=na.exclude)
+ny.season <- glm(death ~ pm10 + as.factor(season), data=ny.data, family=poisson, na.action = na.exclude)
+ny.ns3<-glm(death ~ pm10 + ns(date, 3), data=ny.data, family=poisson, na.action = na.exclude)
+ny.month<-glm(death ~ pm10 + as.factor(month), data=ny.data, family=poisson, na.action = na.exclude)
+ny.season.month<-glm(death ~ pm10 + as.factor(season)*as.factor(year), data=ny.data, family=poisson, na.action = na.exclude)
+ny.month.year<-glm(death ~ pm10 + as.factor(month)*as.factor(year), data=ny.data, family=poisson, na.action = na.exclude)
+
+# get the coefficients from the models; you will need to add the additional models here so they are all in there
+ny_model_coefs <- data.frame(ny.unadjusted$coefficients["pm10"],ny.season$coefficients["pm10"], ny.ns3$coefficients["pm10"])
+names(ny_model_coefs) <- c("unadjusted", "season", "ns 3df" )
+
+# here's your nice table of the results; will also need to add the confidence intervals to this table
+kable(t(ny_model_coefs), caption = "Table 2: Beta coefficients across models - New York")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

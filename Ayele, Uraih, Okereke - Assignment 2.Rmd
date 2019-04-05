@@ -1,0 +1,409 @@
+---
+title: "Ayele, Uraih, Okereke - Assignment 2"
+author: "Sami Ayele, Madi Uraih, Chisom Okereke"
+date: "3/3/2019"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+MAT: I like that you modified Dr. Taub's function for the seasonal plots to make plots for each of your cities.  What we want, however, is a plot that has mortality,  temperature, and pm10 together in one panel, as in slide 8 in the Class 1-2 notes.  We will also look at some examples of these types of plots from your classmates at the beginning of class today, so hopefully this will give you some ideas on where to start. I did make a few comments on the code that you included below though, in case you are curious about a few things. We will also be talking in class today about making nice tables of the coefficients; I see the model output and summaries here, but no table. You will want to figure out a way that works for you and include in next week's assignment.
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+
+library(lubridate)
+library(tidyverse)
+
+baltimore.data<-read.csv("/Users/Sami/Health Data Analysis/asst2-1-sayele2/nmmaps/baltimore.csv", stringsAsFactors=FALSE)
+ny.data<-read.csv("/Users/Sami/Health Data Analysis/asst2-1-sayele2/nmmaps/ny.csv", stringsAsFactors=FALSE)
+seattle.data<-read.csv("/Users/Sami/Health Data Analysis/asst2-1-sayele2/nmmaps/seattle.csv", stringsAsFactors=FALSE)
+la.data<-read.csv("/Users/Sami/Health Data Analysis/asst2-1-sayele2/nmmaps/la.csv", stringsAsFactors=FALSE)
+
+baltimore.data<-read.csv("./nmmaps/baltimore.csv", stringsAsFactors=FALSE)
+ny.data<-read.csv("./nmmaps/ny.csv", stringsAsFactors=FALSE)
+seattle.data<-read.csv("./nmmaps/seattle.csv", stringsAsFactors=FALSE)
+la.data<-read.csv("./nmmaps/la.csv", stringsAsFactors=FALSE)
+
+names(baltimore.data)
+head(baltimore.data)
+names(ny.data)
+head(ny.data)
+names(seattle.data)
+head(seattle.data)
+names(la.data)
+head(la.data)
+baltimore.data$date = ymd(baltimore.data$date)
+ny.data$date = ymd(ny.data$date) 
+class(ny.data$date)
+class(seattle.data$date)
+class(la.data$date)
+class(baltimore.data$date)
+seattle.data$date=ymd(seattle.data$date)
+la.data$date=ymd(la.data$date)
+wday(seattle.data$date)[1:10]
+wday(seattle.data$date, label=T)[1:10]
+wday(la.data$date)[1:10]
+wday(la.data$date, label=T)[1:10]
+wday(baltimore.data$date)[1:10]
+wday(baltimore.data$date, label=T)[1:10]
+wday(ny.data$date)[1:10]
+wday(ny.data$date, label=T)[1:10]
+month(seattle.data$date)[1:10]
+month(seattle.data$date, label=T)[1:10]
+month(la.data$date)[1:10]
+month(la.data$date, label=T)[1:10]
+month(baltimore.data$date)[1:10]
+month(baltimore.data$date, label=T)[1:10]
+month(ny.data$date)[1:10]
+month(ny.data$date, label=T)[1:10]
+
+plot(death ~ date, data=baltimore.data)
+plot(death ~ date, data=ny.data)
+plot(death ~ date, data=seattle.data)
+plot(death ~ date, data=la.data)
+```
+
+```{R}
+#SUBPLOTS
+
+## MAT: I have modified so the color will actually change, and not just be red every time
+nySubPlot<-function(ny.data, mainLabel, pointColor)
+  {plot(death ~ pm10, data=ny.data, ylab="Daily mortality", xlab="PM10", main=mainLabel, col=pointColor)
+  points(death ~ pm10, data=ny.data, col=pointColor)
+  abline(lm(death ~ pm10, data=ny.data), col="black", lwd=3)
+  return(summary(lm(death ~ pm10, data=ny.data)))}
+  
+seattleSubPlot<-function(seattle.data, mainLabel, pointColor)
+  {plot(death ~ pm10, data=seattle.data, ylab="Daily mortality", xlab="PM10", main=mainLabel, col=pointColor)
+  points(death ~ pm10, data=seattle.data, col=pointColor)
+  abline(lm(death ~ pm10, data=seattle.data), col="black", lwd=3)
+  return(summary(lm(death ~ pm10, data=ny.data)))}
+
+laSubPlot<-function(la.data, mainLabel, pointColor)
+  {plot(death ~ pm10, data=la.data, ylab="Daily mortality", xlab="PM10", main=mainLabel, col=pointColor)
+  points(death ~ pm10, data=la.data, col=pointColor)
+  abline(lm(death ~ pm10, data=la.data), col="black", lwd=3)
+  return(summary(lm(death ~ pm10, data=la.data)))}
+
+baltSubPlot<-function(baltimore.data, mainLabel, pointColor)
+  {plot(death ~ pm10, data=baltimore.data, ylab="Daily mortality", xlab="PM10", main=mainLabel, col=pointColor)
+  points(death ~ pm10, data=baltimore.data, col=pointColor)
+  abline(lm(death ~ pm10, data=baltimore.data), col="black", lwd=3)
+  return(summary(lm(death ~ pm10, data=baltimore.data)))}
+
+```
+
+
+```{r}
+nySubPlot(subset(ny.data, season=="Winter"), "Winter", "blue")
+nySubPlot(subset(ny.data, season=="Spring"), "Spring", "green")
+nySubPlot(subset(ny.data, season=="Summer"), "Summer", "red")
+nySubPlot(subset(ny.data, season=="Autumn"), "Autumn", "orange")
+
+seattleSubPlot(subset(seattle.data, season=="Winter"), "Winter", "blue")
+seattleSubPlot(subset(seattle.data, season=="Spring"), "Spring", "green")
+seattleSubPlot(subset(seattle.data, season=="Summer"), "Summer", "red")
+seattleSubPlot(subset(seattle.data, season=="Autumn"), "Autumn", "orange")
+
+laSubPlot(subset(la.data, season=="Winter"), "Winter", "blue")
+laSubPlot(subset(la.data, season=="Spring"), "Spring", "green")
+laSubPlot(subset(la.data, season=="Summer"), "Summer", "red")
+laSubPlot(subset(la.data, season=="Autumn"), "Autumn", "orange")
+
+p1 <- baltSubPlot(subset(baltimore.data, season=="Winter"), "Winter", "blue")
+p2 <- baltSubPlot(subset(baltimore.data, season=="Spring"), "Spring", "green")
+p3 <- baltSubPlot(subset(baltimore.data, season=="Summer"), "Summer", "red")
+p4 <- baltSubPlot(subset(baltimore.data, season=="Autumn"), "Autumn", "orange")
+
+
+
+
+colsToUse<-c("blue", "green", "red", "orange")
+names(colsToUse)<-c("Winter", "Spring", "Summer", "Autumn")
+par(mfrow=c(2,2))
+ny.mortalityBySeason<-lapply(names(colsToUse), function(x) nySubPlot(subset(ny.data, season == x), x, colsToUse[x]))
+
+colsToUse<-c("blue", "green", "red", "orange")
+names(colsToUse)<-c("Winter", "Spring", "Summer", "Autumn")
+par(mfrow=c(2,2))
+la.mortalityBySeason<-lapply(names(colsToUse), function(x) laSubPlot(subset(la.data, season == x), x, colsToUse[x]))
+
+colsToUse<-c("blue", "green", "red", "orange")
+names(colsToUse)<-c("Winter", "Spring", "Summer", "Autumn")
+par(mfrow=c(2,2))
+baltimore.mortalityBySeason<-lapply(names(colsToUse), function(x) nySubPlot(subset(ny.data, season == x), x, colsToUse[x]))
+
+colsToUse<-c("blue", "green", "red", "orange")
+names(colsToUse)<-c("Winter", "Spring", "Summer", "Autumn")
+par(mfrow=c(2,2))
+seattle.mortalityBySeason<-lapply(names(colsToUse), function(x) nySubPlot(subset(ny.data, season == x), x, colsToUse[x]))
+```
+
+
+
+
+
+NEW YORK
+```{R}
+ny.data %>%
+  ggplot(aes(x = date, y = pm10, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "PM 10", x = "Date", title = "New York PM") +
+  geom_smooth(method = "lm")
+
+ny.data %>%
+  ggplot(aes(x = date, y = tempF, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Temperature (Farenheit)", x = "Date", title = "New York Temperature") +
+  geom_smooth(method = "lm")
+
+ny.data %>%
+  ggplot(aes(x = date, y = death, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Mortality (Number of Deaths)", x = "Date", title = "New York Mortality") +
+  geom_smooth(method = "lm")
+```
+
+
+LOS ANGELES
+```{R}
+la.data %>%
+  ggplot(aes(x = date, y = pm10, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "PM 10", x = "Date", title = "Los Angeles PM") +
+  geom_smooth(method = "lm")
+
+la.data %>%
+  ggplot(aes(x = date, y = tempF, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Temperature (Farenheit)", x = "Date", title = "Los Angeles Temperature") +
+  geom_smooth(method = "lm")
+
+la.data %>%
+  ggplot(aes(x = date, y = death, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Mortality (Number of Deaths)", x = "Date", title = "Los Angeles Mortality") +
+  geom_smooth(method = "lm")
+
+```
+
+
+SEATTLE DATA
+```{R}
+seattle.data %>%
+  ggplot(aes(x = date, y = pm10, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "PM 10", x = "Date", title = "Seattle PM") +
+  geom_smooth(method = "lm")
+
+seattle.data %>%
+  ggplot(aes(x = date, y = tempF, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Temperature (Farenheit)", x = "Date", title = "Seattle Temperature") +
+  geom_smooth(method = "lm")
+
+seattle.data %>%
+  ggplot(aes(x = date, y = death, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Mortality (Number of Deaths)", x = "Date", title = "Seattle Mortality") +
+  geom_smooth(method = "lm")
+
+```
+
+
+BALTIMORE DATA
+```{R}
+baltimore.data %>%
+  ggplot(aes(x = date, y = pm10, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "PM 10", x = "Date", title = "Baltimore PM") +
+  geom_smooth(method = "lm")
+
+baltimore.data %>%
+  ggplot(aes(x = date, y = tempF, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Temperature (Farenheit)", x = "Date", title = "Baltimore Temperature") +
+  geom_smooth(method = "lm")
+
+baltimore.data %>%
+  ggplot(aes(x = date, y = death, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Mortality (Number of Deaths)", x = "Date", title = "Baltimore Mortality") +
+  geom_smooth(method = "lm")
+
+```
+
+
+PM 10 AND DATE
+```{r}
+ny.data %>%
+  ggplot(aes(x = date, y = pm10, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "PM 10", x = "Date", title = "New York PM") +
+  geom_smooth(method = "lm")
+
+la.data %>%
+  ggplot(aes(x = date, y = pm10, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "PM 10", x = "Date", title = "Los Angeles PM") +
+  geom_smooth(method = "lm")
+
+seattle.data %>%
+  ggplot(aes(x = date, y = pm10, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "PM 10", x = "Date", title = "Seattle PM") +
+  geom_smooth(method = "lm")
+
+baltimore.data %>%
+  ggplot(aes(x = date, y = pm10, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "PM 10", x = "Date", title = "Baltimore PM") +
+  geom_smooth(method = "lm")
+
+```
+
+
+
+death AND DATE
+```{r}
+ny.data %>%
+  ggplot(aes(x = date, y = tempF, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Temperature (Farenheit)", x = "Date", title = "New York Temperature") +
+  geom_smooth(method = "lm")
+
+la.data %>%
+  ggplot(aes(x = date, y = tempF, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Temperature (Farenheit)", x = "Date", title = "Los Angeles Temperature") +
+  geom_smooth(method = "lm")
+
+seattle.data %>%
+  ggplot(aes(x = date, y = tempF, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Temperature (Farenheit)", x = "Date", title = "Seattle Temperature") +
+  geom_smooth(method = "lm")
+
+baltimore.data %>%
+  ggplot(aes(x = date, y = tempF, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Temperature (Farenheit)", x = "Date", title = "Baltimore Temperature") +
+  geom_smooth(method = "lm")
+
+```
+
+
+
+
+tempF AND DATE
+```{r}
+ny.data %>%
+  ggplot(aes(x = date, y = death, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Mortality (Number of Deaths", x = "Date", title = "New York Mortality") +
+  geom_smooth(method = "lm")
+
+la.data %>%
+  ggplot(aes(x = date, y = death, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Mortality (Number of Deaths", x = "Date", title = "Los Angeles Mortality") +
+  geom_smooth(method = "lm")
+
+seattle.data %>%
+  ggplot(aes(x = date, y = death, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Mortality (Number of Deaths", x = "Date", title = "Seattle Mortality") +
+  geom_smooth(method = "lm")
+
+baltimore.data %>%
+  ggplot(aes(x = date, y = death, col=season)) + 
+  geom_point() + 
+  facet_wrap(~season) + 
+  labs(y = "Mortality (Number of Deaths", x = "Date", title = "Baltimore Mortality") +
+  geom_smooth(method = "lm")
+
+```
+
+
+
+
+Part 3
+
+```{r}
+glm.model.ny = glm(death ~ pm10, data=ny.data, family=poisson)
+summary(glm.model.ny)
+
+glm.model.seattle = glm(death ~ pm10, data=seattle.data, family=poisson)
+summary(glm.model.seattle)
+
+glm.model.la = glm(death ~ pm10, data=la.data, family=poisson)
+summary(glm.model.la)
+
+glm.model.baltimore = glm(death ~ pm10, data=baltimore.data, family=poisson)
+summary(glm.model.baltimore)
+
+```
+
+Covariates can be included in the model in the usual way, but be sure to treat variables as factors that should be treated as factors.
+```{r}
+glm.model2 = glm(death ~ pm10 + as.factor(season), data=ny.data, family=poisson)
+summary(glm.model2)
+
+glm.model2 = glm(death ~ pm10 + as.factor(season), data=seattle.data, family=poisson)
+summary(glm.model2)
+
+glm.model2 = glm(death ~ pm10 + as.factor(season), data=baltimore.data, family=poisson)
+summary(glm.model2)
+
+glm.model2 = glm(death ~ pm10 + as.factor(season), data=la.data, family=poisson)
+summary(glm.model2)
+
+```
+
+
+
+
+
